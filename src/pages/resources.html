@@ -10,11 +10,21 @@
 
 <section class="section">
   <div class="container">
+    <form class="kb-search" role="search" data-kb-search>
+      <label for="kb-q" class="sr-only">Search the knowledge base</label>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="kb-q" type="search" name="q" placeholder="Search articles, e.g. sophomores, FAFSA, 529, scholarships" autocomplete="off">
+      <button type="button" class="kb-clear" aria-label="Clear search" hidden>&times;</button>
+    </form>
     <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:16px">
       {{FILTERS}}
       <p class="muted" style="margin:0 0 32px" data-post-count aria-live="polite">{{ARTICLE_COUNT}} articles</p>
     </div>
     {{ARTICLES:all}}
+    <div class="card kb-empty" hidden>
+      <h3>No articles match that search yet.</h3>
+      <p class="muted" style="margin:0">Try a broader word like &ldquo;scholarships&rdquo;, &ldquo;FAFSA&rdquo; or &ldquo;careers&rdquo;, or <a href="{{ROOT}}contact-us/#book">ask an advisor directly</a>.</p>
+    </div>
   </div>
 </section>
 

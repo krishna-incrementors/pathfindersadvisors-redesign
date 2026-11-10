@@ -145,6 +145,8 @@ ARTICLES = [
     ("FAFSA Opens 10/1: Avoid Mistakes That Cost You Money", "fafsa-opens-oct-1-2025", "2025-09-30", "2025/05/Your-turn-768x768.png", "FAFSA filing reminder", ["Financial"], "FAFSA opens October 1, and families who delay risk losing thousands in aid. Here’s what every parent of a college-bound student must know before filing."),
 ]
 CATEGORIES = ["Current Events", "Financial", "Careers", "ACT/SAT"]
+_KW = ROOT_DIR / "src" / "data" / "article_keywords.json"
+ARTICLE_KEYWORDS = json.loads(_KW.read_text()) if _KW.exists() else {}
 
 GUIDES = [
     ("College Application Timeline & Checklist", WP + "2026/06/College-Application-Timeline-Checklist-600x347.png", "Every deadline from junior spring to decision day, in one printable checklist."),
@@ -152,23 +154,41 @@ GUIDES = [
 ]
 
 FAQS = [
-    ("What does a college and career advisor at Pathfinders do?",
-     ["We are education investment advisors. We help high school students and their parents choose a career direction first, then the college or other educational pathway that supports it, and a plan to pay for it.",
-      "Coaching is 1:1 and virtual. Your advisor guides career discovery, the college list, essays, applications, deadlines and the final decision, including aid packages."]),
-    ("When should our family start college and career planning?",
-     ["The earlier the better. Our process is a journey of self-discovery that starts in early high school, so many families begin in 9th or 10th grade and use that time for career exploration before applications.",
-      "Juniors and seniors can still get help with the college list, essays, applications, financial aid and choosing between offers."]),
+    ("Can't we figure this out ourselves?",
+     ["You can, but families don't know what they don't know, and mistakes in college and career planning can be expensive and difficult to reverse.",
+      "Just as you work with a financial advisor for major financial decisions, Pathfinders helps you avoid costly education mistakes before they happen."]),
+    ("Isn't this what the school counselor does?",
+     ["School counselors are valuable, but they often support hundreds of students. Pathfinders provides personalized, career-first planning that brings together career exploration, educational fit, financial strategy and ongoing guidance throughout the process."]),
+    ("Our child will figure it out once they're in college. Why plan now?",
+     ["That may have been true 20 years ago. Today, changing majors, transferring schools or extending graduation can significantly increase costs and delay financial independence.",
+      "Starting with career clarity helps students make more informed decisions from the beginning."]),
+    ("Is this only for students applying to elite colleges?",
+     ["No. The process begins with career discovery and then identifies the best educational pathway, which may be a four-year university, community college, trade school, apprenticeship, military service or another option."]),
+    ("Will my teenager actually engage?",
+     ["Yes. Students work directly with experienced advisors who help them take ownership of the process, which often reduces parent-child tension."]),
+    ("Is it worth the investment?",
+     ["The cost of expert guidance is small compared with the financial impact of choosing the wrong educational path or taking on unnecessary student debt.",
+      "Families who work with us save about $56,000 on average through scholarship strategies, four-year graduation planning, internships and co-op opportunities."]),
+    ("When should our family start?",
+     ["Many families begin in 9th or 10th grade, so there is time for career discovery before applications. Most reach out when sophomore or junior year begins and the timeline suddenly feels real, and that is still a great time to start.",
+      "Seniors can still get help with the college list, essays, applications, financial aid and choosing between offers."]),
     ("What happens on the complimentary family strategy call?",
-     ["We meet your family where you are in the college and career journey. We learn about your student’s interests, strengths and goals, point out common blind spots that derail many students, and answer the big question: what should we do next?"]),
-    ("Do you only help students who are going to a four-year college?",
-     ["No. Career-first planning means choosing the education that fits the career. That can be a four-year college, community college, vocational training, an apprenticeship or a certification. We help families compare those options on cost and career outcomes."]),
-    ("Can you help us pay less for college?",
-     ["Yes. Financial strategy is built into every plan. We help families build a college list with the right net price, understand the FAFSA and CSS Profile, compare aid packages, pursue merit scholarships and consider financial aid appeals.",
-      "Families who work with us save about $56,000 on average."]),
+     ["We meet your family where you are in the college and career journey. We learn about your student's interests, strengths and goals, point out common blind spots that derail many students, and answer the big question: what should we do next?"]),
     ("Do you work with families outside your area?",
      ["Yes. Coaching, the online College & Career Planning Course and our workshops are all virtual, so we work with families across the United States."]),
-    ("How is Pathfinders different from a school counselor or a typical admissions consultant?",
-     ["Most planning starts with “which college?” We start with “which career?” and treat college as one of the largest investments your family will make. Your student gets 24 academic strategy calls with an advisor who manages the timeline, so school counselors, parents and students all carry less of the load."]),
+]
+
+FP_FAQS = [
+    ("Will Pathfinders compete with my services?",
+     ["No. Pathfinders complements financial planning by focusing on career discovery and education strategy, so you remain the family's primary financial strategist."]),
+    ("Will my clients value this?",
+     ["Yes. Education planning is one of the most emotionally and financially significant decisions a family faces, and clients appreciate proactive guidance on it."]),
+    ("Will this create more work for me?",
+     ["No. Pathfinders handles the specialized planning while keeping you informed, which strengthens your role without adding to your workload."]),
+    ("My clients have already saved for college. Do they still need this?",
+     ["Saving is only half the equation; strategic spending matters just as much. Academic success doesn't automatically translate into career clarity or the best educational investment."]),
+    ("Isn't education funding already part of my role?",
+     ["You manage the wealth plan. Pathfinders adds specialized expertise in career exploration, educational fit and Return on Education (ROE), so together your clients get a more complete strategy."]),
 ]
 
 # --------------------------------------------------------------------------- page config
@@ -275,7 +295,8 @@ def post_card(a, root):
     d = dt.date.fromisoformat(date)
     cats_attr = "|".join(cats)
     tag = cats[0]
-    return (f'<a class="post-card reveal" href="{article_url(slug)}" data-cats="{e(cats_attr)}">'
+    hay = " ".join([title, excerpt, " ".join(cats), " ".join(ARTICLE_KEYWORDS.get(slug, []))]).lower()
+    return (f'<a class="post-card reveal" href="{article_url(slug)}" data-cats="{e(cats_attr)}" data-search="{e(hay)}">'
             f'<div class="thumb"><img src="{WP}{img}" alt="{e(alt)}" loading="lazy" width="768" height="480"></div>'
             f'<div class="body"><div class="post-meta"><span class="tag">{e(tag)}</span><time datetime="{date}">{fmt_date(d)}</time></div>'
             f'<h3>{e(title)}</h3><p>{e(excerpt)}</p><span class="text-link">Read article</span></div></a>')
@@ -299,9 +320,9 @@ def r_filters(_arg, ctx):
     return '<div class="filter-bar" role="group" aria-label="Filter articles by topic">' + "".join(chips) + "</div>"
 
 
-def r_faq(_arg, ctx):
+def r_faq(arg, ctx):
     items = []
-    for i, (q, answer) in enumerate(FAQS):
+    for i, (q, answer) in enumerate(FP_FAQS if arg == "planners" else FAQS):
         body = "".join(f"<p>{e(p)}</p>" for p in answer)
         items.append(f'<details{" open" if i == 0 else ""}><summary>{e(q)}</summary><div class="answer">{body}</div></details>')
     return '<div class="faq">' + "".join(items) + "</div>"
@@ -394,11 +415,22 @@ def r_form(kind, ctx):
     return html_out.replace("{FORMID}", kind)
 
 
+CTA_COPY = {
+    "home": ("Build a plan first", "Don’t spend $400,000 hoping it works out.",
+             "Pathfinders isn’t traditional college counseling. We help students discover who they want to become, identify the educational pathway that supports those goals, and build a financial strategy that maximizes Return on Education (ROE)."),
+    "planners": ("For advisors who lead with advice", "Make education one of your clients’ smartest investments.",
+                 "You’ve helped your clients accumulate wealth. We help ensure one of their largest planned expenditures is aligned with career outcomes, family values and long-term financial goals."),
+    "": ("Ready? We are too.", "Put your student in the driver’s seat.",
+         "We get it. Choosing the right college with your student can be daunting. Let us help you put them in the driver’s seat and take the stress off of you."),
+}
+
+
 def r_cta(arg, ctx):
     root = ctx["root"]
+    eyebrow, head, para = CTA_COPY.get(arg or "", CTA_COPY[""])
     return (f'<section class="section-tight"><div class="container"><div class="cta-band reveal">{ROUTE_SVG}'
-            f'<div><span class="eyebrow">Ready? We are too.</span><h2>Put your student in the driver’s seat.</h2>'
-            f'<p>We get it. Choosing the right college with your student can be daunting. Let us help you put them in the driver’s seat and take the stress off of you.</p></div>'
+            f'<div><span class="eyebrow">{eyebrow}</span><h2>{head}</h2>'
+            f'<p>{para}</p></div>'
             f'<div class="btn-row"><a class="btn" href="{root}contact-us/#book">Book a free strategy call {icon("arrow")}</a></div></div></div></section>')
 
 
@@ -427,12 +459,12 @@ def org_node():
         "url": SITE + "/",
         "logo": {"@type": "ImageObject", "@id": SITE + "/#logo", "url": LOGO, "width": 1522, "height": 320, "caption": "Pathfinders Advisors"},
         "image": {"@id": SITE + "/#logo"},
-        "description": "Education investment advisors who help high school students and parents across the United States choose a career direction first, then the right college or educational pathway and a plan to pay for it.",
+        "description": "Education Investment Advisors. We help planning-oriented families make smarter education investments by discovering the right career before choosing the right educational pathway.",
         "slogan": "Career First. College Second.",
         "foundingDate": "2009",
         "founder": {"@type": "Person", "@id": SITE + "/about/#aaron-greene", "name": "Aaron Greene"},
         "areaServed": {"@type": "Country", "name": "United States"},
-        "knowsAbout": ["College admissions", "Career exploration for high school students", "College planning", "Financial aid", "FAFSA", "CSS Profile", "Merit scholarships", "College application essays", "SAT", "ACT", "Education return on investment"],
+        "knowsAbout": ["Return on Education (ROE)", "Education investment planning", "College admissions", "Career exploration for high school students", "College planning", "Financial aid", "FAFSA", "CSS Profile", "Merit scholarships", "College application essays", "SAT", "ACT", "Education return on investment"],
         "sameAs": list(SOCIAL.values()),
     }
 
@@ -459,9 +491,9 @@ def breadcrumb_node(p):
         {"@type": "ListItem", "position": 2, "name": p["name"], "item": url}]}
 
 
-def faq_node(p):
+def faq_node(p, faqs=None):
     return {"@type": "FAQPage", "@id": SITE + p["path"] + "#faq", "isPartOf": {"@id": SITE + p["path"] + "#webpage"},
-            "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": " ".join(a)}} for q, a in FAQS]}
+            "mainEntity": [{"@type": "Question", "name": q, "acceptedAnswer": {"@type": "Answer", "text": " ".join(a)}} for q, a in (faqs or FAQS)]}
 
 
 def person(pid, name, job, desc, img, extra=None):
@@ -525,8 +557,9 @@ def schema_for(p):
     elif key == "financial-planners.html":
         g += [webpage_node(p), breadcrumb_node(p),
               service_node("/financial-planners/#service", "College Planning Partnership for Financial Planners",
-                           "College selection and financial aid strategy for the college-bound children of financial planning clients, helping protect college funds and long-term portfolios.",
-                           "Financial planners and wealth advisors", "College financial aid planning")]
+                           "A wealth-protection and education planning partner for financial advisors: career-first college selection and financial aid strategy that helps client families invest education dollars with discipline, reduce unnecessary student debt and maximize Return on Education (ROE).",
+                           "Financial planners and wealth advisors", "College financial aid planning"),
+              faq_node(p, FP_FAQS)]
     elif key == "workshops.html":
         g += [webpage_node(p), breadcrumb_node(p)] + event_nodes()
     elif key == "resources.html":

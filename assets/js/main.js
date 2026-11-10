@@ -66,24 +66,71 @@
     else { announce.innerHTML = 'Free virtual workshops for families. <a href="' + announce.getAttribute("data-fallback") + '">See upcoming dates</a>'; }
   }
 
-  /* Knowledge base filters */
+  /* Knowledge base: topic filters + keyword search (combined) */
   var chips = document.querySelectorAll(".chip[data-filter]");
   var posts = document.querySelectorAll("[data-cats]");
+  var kbForm = document.querySelector("[data-kb-search]");
+  var kbInput = kbForm ? kbForm.querySelector("input") : null;
+  var kbClear = kbForm ? kbForm.querySelector(".kb-clear") : null;
+  var kbEmpty = document.querySelector(".kb-empty");
+  var activeCat = "all";
+  // Words parents use -> words the articles use
+  var SYN = {
+    freshman: ["freshman", "freshmen", "9th", "ninth"], sophomore: ["sophomore", "10th", "tenth"],
+    junior: ["junior", "11th", "eleventh"], senior: ["senior", "12th", "twelfth"],
+    test: ["sat", "act", "psat", "test"], sat: ["sat", "psat"], act: ["act"],
+    aid: ["aid", "fafsa", "css profile", "scholarship"], money: ["cost", "aid", "scholarship", "loan", "529", "price"],
+    loan: ["loan", "borrow", "debt"], debt: ["debt", "loan"], cost: ["cost", "price", "tuition"],
+    career: ["career"], major: ["major"], ai: ["ai"], trade: ["trade school", "vocational", "apprentice"]
+  };
+  function terms(q) {
+    return q.toLowerCase().replace(/[^a-z0-9\s-]/g, " ").split(/\s+/).filter(function (w) { return w.length > 1; })
+      .map(function (w) {
+        var forms = [w, w.replace(/ies$/, "y"), w.replace(/s$/, ""), w.replace(/es$/, "")];
+        for (var i = 0; i < forms.length; i++) { if (SYN[forms[i]]) return SYN[forms[i]]; }
+        return [w.length > 3 ? w.replace(/s$/, "") : w];
+      });
+  }
+  function esc(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+  function matches(hay, groups) {
+    return groups.every(function (alts) {
+      return alts.some(function (a) {
+        // short terms (AI, ACT, SAT, 529) must be whole words; longer ones match word starts
+        var re = new RegExp("(^|[^a-z0-9])" + esc(a) + (a.length <= 3 ? "($|[^a-z0-9])" : ""));
+        return re.test(hay);
+      });
+    });
+  }
+  function applyKb() {
+    var groups = kbInput && kbInput.value.trim() ? terms(kbInput.value) : [];
+    var n = 0;
+    posts.forEach(function (p) {
+      var cats = p.getAttribute("data-cats").split("|");
+      var inCat = activeCat === "all" || cats.indexOf(activeCat) !== -1;
+      var hay = (p.getAttribute("data-search") || p.textContent).toLowerCase();
+      var show = inCat && (!groups.length || matches(hay, groups));
+      p.hidden = !show;
+      if (show) n++;
+    });
+    var count = document.querySelector("[data-post-count]");
+    if (count) count.textContent = n + (n === 1 ? " article" : " articles");
+    if (kbEmpty) kbEmpty.hidden = n !== 0;
+    if (kbClear) kbClear.hidden = !(kbInput && kbInput.value);
+  }
   chips.forEach(function (chip) {
     chip.addEventListener("click", function () {
-      var f = chip.getAttribute("data-filter");
+      activeCat = chip.getAttribute("data-filter");
       chips.forEach(function (c) { c.setAttribute("aria-pressed", c === chip ? "true" : "false"); });
-      posts.forEach(function (p) {
-        var cats = p.getAttribute("data-cats").split("|");
-        p.hidden = !(f === "all" || cats.indexOf(f) !== -1);
-      });
-      var count = document.querySelector("[data-post-count]");
-      if (count) {
-        var n = document.querySelectorAll("[data-cats]:not([hidden])").length;
-        count.textContent = n + (n === 1 ? " article" : " articles");
-      }
+      applyKb();
     });
   });
+  if (kbForm) {
+    kbForm.addEventListener("submit", function (e) { e.preventDefault(); applyKb(); });
+    kbInput.addEventListener("input", applyKb);
+    kbClear.addEventListener("click", function () { kbInput.value = ""; applyKb(); kbInput.focus(); });
+    var q0 = new URLSearchParams(location.search).get("q");
+    if (q0) { kbInput.value = q0; applyKb(); }
+  }
 
   /* Long reviews: read more */
   document.querySelectorAll(".review .clamp").forEach(function (p) {
