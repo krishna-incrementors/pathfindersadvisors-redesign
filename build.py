@@ -668,7 +668,7 @@ def layout(p, body, root):
 <link rel="apple-touch-icon" href="{WP}2025/01/cropped-Pathfinders_hor_RGB-180x180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,opsz,wght@1,8..60,400;1,8..60,500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@300;400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="{root}assets/css/style.css?v={VERSION}">
 <script type="application/ld+json">
 {schema_for(p)}
